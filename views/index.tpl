@@ -19,6 +19,7 @@
       background-color: #fff;
     } 
   </style>
+  <script src=/static/main.js></script>
 </head>
 
 <body>
