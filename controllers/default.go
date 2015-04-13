@@ -69,7 +69,7 @@ func (c *AppSer) Post() {
 			o.Insert(&mmd)
 			newid = fmt.Sprintf("%d", mmd.Id)
 			fmt.Print("insert ", mmd)
-			c.Ctx.WriteString(`{"success":true ,"id","` + newid + `"}`)
+			c.Ctx.WriteString(`{"success":true ,"id":"` + newid + `"}`)
 			return
 
 		} else {
@@ -106,7 +106,7 @@ func (c *AppSer) Post() {
 		var rows []string
 		rown := len(datas)
 		for i = 0; i < rown; i++ {
-			strrow := fmt.Sprint(`{"id":"`, datas[i].Id, `","tile":"`+datas[i].Title+`" `)
+			strrow := fmt.Sprint(`{"id":"`, datas[i].Id, `","title":"`+datas[i].Title+`" `)
 			strrow += fmt.Sprint(`, "cateid":"`, datas[i].Cateid, `"`)
 			strrow += fmt.Sprint(`, "cateid2":"`, datas[i].Cateid2, `"`)
 			strrow += fmt.Sprint(`, "tags":"`, datas[i].Tags, `"`)
@@ -119,7 +119,7 @@ func (c *AppSer) Post() {
 		}
 		datastr := "[" + strings.Join(rows, ",") + "]"
 
-		c.Ctx.WriteString(`{"rows":` + fmt.Sprintf("%d", rown) + ` ,"data:"` + datastr + `}`)
+		c.Ctx.WriteString(`{"rows":` + fmt.Sprintf("%d", rown) + ` ,"data":` + datastr + `}`)
 	}
 
 	if act == "loadone" {
@@ -140,10 +140,10 @@ func (c *AppSer) Post() {
 			return
 		}
 		strrow := ""
-
+		contentstr := strings.Replace(datas[0].Content, "\"", `\"`, -1)
 		strrow += fmt.Sprint(`{"id":"`, datas[0].Id, `"  `)
 		strrow += fmt.Sprint(`, "filename":"`, datas[0].Filename, `"`)
-		strrow += fmt.Sprint(`, "content":"`, datas[0].Content, `"`)
+		strrow += fmt.Sprint(`, "content":"`, contentstr, `"`)
 		strrow += fmt.Sprint(`,"success":true}`)
 		c.Ctx.WriteString(strrow)
 		return
