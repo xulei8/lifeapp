@@ -2,7 +2,7 @@
 <html>
 <head>
  
-	<title>Basic Layout - jQuery EasyUI Demo</title>
+	<title>APP</title>
 	<meta http-equiv="content-type" content="text/html;charset=utf-8">
 	<link rel="stylesheet" type="text/css" href="/static/jui/themes/default/easyui.css">
 	<link rel="stylesheet" type="text/css" href="/static/jui/themes/icon.css">
@@ -25,13 +25,17 @@
 	 
 <div data-options="region:'north'" style="height:62px">
 	<div id="logo"></div>			
+	<div id="top">
+		<div id="newNote" onclick="NewNote() ;">新建</div>
+
+	</div>
 
 </div>
  
 	 
 		<div data-options="region:'west',split:true" style="width:140px;">
 			<div class="lefttab">
-				<div class="lefttabico"></div>
+				<div class="lefttabico iconew1"></div>
 				<div class="lefttablabel">最新</div>
 				<div class="lefttabtool"></div>
 			</div>
@@ -44,17 +48,17 @@
 
 
 			<div class="lefttab">
-				<div class="lefttabico"></div>
+				<div class="lefttabico  iconew1"></div>
 				<div class="lefttablabel">笔记</div>
-				<div class="lefttabtool" id="menutool_add">ADD</div>
+				<div class="lefttabtool" id="menutool_add"></div>
 			</div>
 
 			<div class="leftmenu " id="notemenu">
-					<li id=divinputnewcate><input type=text id=inputnewcate  /></li>
+					<li id=divinputnewcate><input type=text id="inputnewcate"  /></li>
 			</div>
 
 			<div class="lefttab">
-				<div class="lefttabico"></div>
+				<div class="lefttabico  iconew1"></div>
 				<div class="lefttablabel">邮件</div>
 				<div class="lefttabtool"></div>
 			</div>
@@ -68,7 +72,7 @@
 		<div data-options="region:'center', iconCls:'icon-ok'" >
 			  <div class="easyui-layout" data-options="fit:true">
 				 
-				<div data-options="region:'west',split:true,border:false" style="width:160px">
+				<div data-options="region:'west',split:true,border:false" style="width:180px">
 					<div id=menu2con>
 						<div id="menu2title">最新</div>
 						<div id="menu2list">
@@ -97,7 +101,7 @@
 				<div data-options="region:'center',border:false">
 					<div id=notemain>
 						<div id=notetitlediv>
-							<input type=text  name=notetitle id="notetitle" />
+							<input type=text  placeholder="新输入标题"  name=notetitle id="notetitle" />
 							<input name=noteid id=noteid type=hidden  value=0 />
 						</div>
 						<div id=notebody>
@@ -111,154 +115,26 @@
 
 
 		<div id="mm" class="easyui-menu" style="width:120px;">
-	        <div onclick="javascript:alert('new')">重命名</div>
+	        <div onclick="javascript:EditCateName();">重命名</div>
 	        <div onclick="javascript:alert('new')"  data-options="iconCls:'icon-save'">添加子类别</div>
 	        <div onclick="javascript:alert('new')"  data-options="iconCls:'icon-remove'">删除</div>
 
 	         
 		</div>
- <script type="text/javascript">
- 		$(".lefttablabel").each(function(){
-			    $(this).click(function(){
-			      	$(this).parent().next().toggle();
-			    })
-    });
- 
- 		 $(".leftmenu li").bind('contextmenu',function(e){
-                e.preventDefault();
-                $('#mm').menu('show', {
-                    left: e.pageX,
-                    top: e.pageY
-                });
-            });
-
-function    loadNote1(obj)
-{
-
-var id=obj.attr("artid");
-
-var t = obj.find(".menu2rowtitle").html();
-
- $("#notetitle").val(t);
-$("#noteid").val(id);
-   $.post("/appser/?act=loadone", { id:id },
-   function(data){
-     var datac =  data.content ;
-	 
- 
-UE.getEditor('contentedit').setContent(datac, false);
 
 
-   } ,  "json" );
- 
-}
-	
-
-function addLeftcate(condiv , title ,id , id2)
-{
-		var str="<li catid1='"+id +"' cateid2='"+ id2+"'><a >"+ title +"<span>3</span></a></li>";
-$(condiv).append(str);
-}
-
-$("#menutool_add").click(function(){
-//$("#addNotebookPlus").parent().next().show();
- 
-$("#divinputnewcate").show();
- $("#inputnewcate").show();
- $("#inputnewcate").focus();
-})
-
-$('#inputnewcate').blur(function() { 
-var catename =  $("#inputnewcate").val();
- 
- 
-  if (catename.length > 2)
-  {    
-	  $.post("/appser/?act=save", { title: catename , modname: "notetree" },
-   function(data){
-    addLeftcate("#notebookList",catename,data.id   ,0);
-   } ,  "json" );
-
-  }
-
-	$("#divinputnewcate").hide();
- 
-
-})
-
-$("#divinputnewcate").hide();
-
-
-$.post("/appser/?act=load", { modname: "notetree" },
-   function(datas){
-	  
-	for(i=0 ;i<datas.data.length;i++)
-	 {
-		var l=datas.data[i].title ;
-		var id =datas.data[i].id ;
 		
-	 	addLeftcate("#notemenu",l,id  ,datas.data[i].cateid2);
-	 }
-   } ,  "json" );
-
-function AddNoteList(data)
-{
-	str="";
-	str+="<div class='menu2row' artid='"+ data.id +"'>";
-	str+="<div class='menu2rowtitle'>" + data.title  + "</div>";
-	str+="</div>";
-
-	
-	$("#menu2list").append(str);
-}
-
-function loadNotes(id1 , id2)
-{
-		$.post("/appser/?act=load", { modname: "notes" },
-   function(datas){
-	  
-	for(i=0 ;i<datas.data.length;i++)
-	 {
-	 
-		 AddNoteList(datas.data[i]);	
-	
-	   
-	 }
-	 	 $(".menu2row").each(function(){
-			    $(this).click(function(){
-			       loadNote1($(this));
-			    })
-    });
-   } ,  "json" );
-   
-}
-
-function saveNote()
-{
-	var t = $('#notetitle').val();
-	var c= UE.getEditor('contentedit').getContent();
-	var id = $("#noteid").val();
-	  $.post("/appser/?act=save", {id:id , title: t , modname: "notes" ,content: c, cateid:0, cateid2:0},
-   function(data){
-if(data.id > 0)
-	   {
-			$('#noteid').val(data.id);
-	   }
-   // addLeftcate("#notebookList",catename,data.id   ,0);
-   } ,  "json" );
-
-}
-
-UE.getEditor('contentedit');
-$('#notetitle').blur(function(){
-saveNote();
-});
-
-loadNotes(0 , 0);
-
-UE.getEditor('contentedit').addListener('blur',function(editor){saveNote();});
+		<div id="rightmenuNote" class="easyui-menu" style="width:120px;">
+	        <div onclick="javascript:alert('new')">重命名</div>
+	        <div onclick="javascript:alert('new')"  data-options="iconCls:'icon-save'">添加子类别</div>
+	        <div onclick="javascript:doDeleteNote();"  data-options="iconCls:'icon-remove'">删除</div>
+		</div>
+ <script type="text/javascript">
  
+
  </script>
+
+ <script type="text/javascript" src="/static/js/notebook.js"></script>
 
 </body>
 </html>

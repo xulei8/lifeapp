@@ -9,5 +9,6 @@ func init() {
 	beego.Router("/", &controllers.MainController{}) //test
 
 	beego.Router("/appser/", &controllers.AppSer{})
+	beego.Router("/appser/ue/", &controllers.AppSerUE{})
 
 }

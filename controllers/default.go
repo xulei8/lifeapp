@@ -1,10 +1,14 @@
 package controllers
 
 import (
+	"crypto/rand"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	m "github.com/xulei8/lifeapp/models"
+	"io/ioutil"
+	"math/big"
+	"os"
 	"strings"
 	"time"
 )
@@ -18,6 +22,150 @@ type MainController struct {
 
 type AppSer struct {
 	beego.Controller
+}
+
+type AppSerUE struct {
+	beego.Controller
+}
+
+func (c *AppSerUE) Get() {
+	action := c.GetString("action")
+	if action == "listimage" {
+		start, _ := c.GetInt("start", 0)
+		size, _ := c.GetInt("size", 5)
+		if size < 2 {
+			size = 2
+		}
+
+		o := orm.NewOrm()
+		var datas []*m.AppMain
+		allc, _ := o.QueryTable("app_main").Filter("modname", "upimg").Count()
+
+		o.QueryTable("app_main").Filter("modname", "upimg").Limit(size, start).All(&datas)
+
+		rown := len(datas)
+		var rows []string
+		i := 0
+		for i = 0; i < rown; i++ {
+			strrow := fmt.Sprint(`{"url":"` + datas[i].Filename + `","mtime":1400203383}`)
+			rows = append(rows, strrow)
+		}
+		datastr := "[" + strings.Join(rows, ",") + "]"
+		rstr := `{"state":"SUCCESS","start":"` + fmt.Sprint(start) + `", "total":` + fmt.Sprint(allc) + `,"list":` + datastr + `}`
+		c.Ctx.WriteString(rstr)
+		return
+	}
+
+	if action == "listfile" {
+		start, _ := c.GetInt("start", 0)
+		size, _ := c.GetInt("size", 5)
+		if size < 2 {
+			size = 2
+		}
+
+		o := orm.NewOrm()
+		var datas []*m.AppMain
+		allc, _ := o.QueryTable("app_main").Filter("modname", "files").Count()
+
+		o.QueryTable("app_main").Filter("modname", "files").Limit(size, start).All(&datas)
+
+		rown := len(datas)
+		var rows []string
+		i := 0
+		for i = 0; i < rown; i++ {
+			strrow := fmt.Sprint(`{"url":"` + datas[i].Filename + `","mtime":1400203383}`)
+			rows = append(rows, strrow)
+		}
+		datastr := "[" + strings.Join(rows, ",") + "]"
+		rstr := `{"state":"SUCCESS","start":"` + fmt.Sprint(start) + `", "total":` + fmt.Sprint(allc) + `,"list":` + datastr + `}`
+		c.Ctx.WriteString(rstr)
+		return
+	}
+
+	if action == "config" {
+		fi, err := os.Open("static/bdeditor/php/config.json")
+		if err != nil {
+			panic(err)
+			return
+		}
+		defer fi.Close()
+		str, _ := ioutil.ReadAll(fi)
+
+		c.Ctx.WriteString(string(str))
+		return
+	}
+}
+
+func (c *AppSerUE) Post() {
+	if c.GetString("action") == "uploadimage" {
+		_, h, err := c.GetFile("upfile")
+		if err != nil {
+			fmt.Println("getfile err ", err)
+		}
+
+		filename := h.Filename[strings.LastIndex(h.Filename, `:`)+1:]
+		filetype := h.Filename[strings.LastIndex(h.Filename, `.`):]
+		max := big.NewInt(100000)
+
+		randi, _ := rand.Int(rand.Reader, max)
+
+		tn := time.Now()
+		timestr := fmt.Sprint(strings.TrimSpace(fmt.Sprint(tn.Year())), strings.TrimSpace(tn.Month().String()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Day()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Hour()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Minute())) + "_"
+		path := `static/up/` + timestr + fmt.Sprint(randi) + filetype
+
+		c.SaveToFile("upfile", path)
+		o := orm.NewOrm()
+		mmd := m.AppMain{}
+		mmd.Title = filename
+		mmd.Addtime = time.Now()
+		mmd.Filename = "/" + path
+		mmd.Modname = "upimg"
+		o.Insert(&mmd)
+
+		c.Ctx.WriteString(`{"original":"` + filename + `","name":"` + filename + `","url":"/` + path + `","size":"123123","type":"` + filetype + `","state":"SUCCESS"}`)
+		return
+	}
+
+	if c.GetString("action") == "uploadfile" {
+		_, h, err := c.GetFile("upfile")
+		if err != nil {
+			fmt.Println("getfile err ", err)
+		}
+
+		filename := h.Filename[strings.LastIndex(h.Filename, `:`)+1:]
+		filetype := h.Filename[strings.LastIndex(h.Filename, `.`):]
+		max := big.NewInt(100000)
+
+		randi, _ := rand.Int(rand.Reader, max)
+
+		tn := time.Now()
+		timestr := fmt.Sprint(strings.TrimSpace(fmt.Sprint(tn.Year())), strings.TrimSpace(tn.Month().String()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Day()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Hour()))
+		timestr += strings.TrimSpace(fmt.Sprint(tn.Minute())) + "_"
+		nname := timestr + fmt.Sprint(randi) + filetype
+		path := `static/up/` + nname
+
+		c.SaveToFile("upfile", path)
+
+		o := orm.NewOrm()
+		mmd := m.AppMain{}
+		mmd.Title = filename
+		mmd.Addtime = time.Now()
+		mmd.Filename = "/" + path
+		mmd.Modname = "files"
+		o.Insert(&mmd)
+
+		c.Ctx.WriteString(`{"original":"` + filename + `","name":"` + nname + `","url":"/` + path + `","size":"99697","type":"` + filetype + `","state":"SUCCESS"}`)
+		//c.Ctx.WriteString(`{"original":"demo.jpg","name":"demo.jpg","url":"/` + path + `","size":"99697","type:"` + filetype + `","state":"SUCCESS"}`)
+		return
+	}
+
+	return
+
 }
 
 func (c *AppSer) Get() {
